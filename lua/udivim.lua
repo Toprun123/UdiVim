@@ -207,7 +207,7 @@ local function handle_inp()
 	for i, line in ipairs(lines) do
 		if line:match("^%s*#$") then
 			local idx = string.find(line, "#")
-			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "    d#0 " })
+			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "    d# " })
 			right(-1)
 		elseif line:match("^%s*%*") then
 			if not line:match("^* ") then
