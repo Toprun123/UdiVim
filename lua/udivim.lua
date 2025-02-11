@@ -1,78 +1,179 @@
 local M = {}
 
 local colors = {
-	w = "#ffffff",
-	k = "#000000",
-	r = "#ff0000",
-	g = "#00ff00",
-	b = "#0000ff",
-	c = "#00ffff",
-	y = "#ffff00",
-	m = "#ff00ff",
+	w = "#d6e0f5",
+	k = "#12141f",
+	r = "#ff7a9c",
+	g = "#b0e57c",
+	b = "#89b4fa",
+	c = "#8cdcff",
+	m = "#c5a3ff",
+	y = "#f5c97f",
 }
 
-local function define_color(name, color_fg, color_bg, bold)
+local function define_color(name, color_fg, color_bg, bold, underline)
 	if bold == nil then
 		bold = true
 	end
-	vim.api.nvim_set_hl(0, name, { fg = colors[color_fg], bg = colors[color_bg], bold = bold })
+	if underline == nil then
+		underline = false
+	end
+	vim.api.nvim_set_hl(0, name, { fg = colors[color_fg], bg = colors[color_bg], bold = bold, underline = underline })
 end
 
 local function highlight_todo_items()
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 	local ns_id = vim.api.nvim_create_namespace("udivim_namespace")
+	local mode = vim.api.nvim_get_mode().mode
+	local cursor = vim.api.nvim_win_get_cursor(0)[1]
 	vim.api.nvim_buf_clear_namespace(0, ns_id, 0, -1)
 	for i, line in ipairs(lines) do
-		if line:match("^%s*@") then
+		local use_virt = true
+		if mode:match("^i") and i == cursor then
+			use_virt = false
+		end
+		if line:match("^%s*[wkrbgcmyd]@[!x0]") then
 			local idx2 = string.find(line, "@")
-			if line:match("") then
-				local idx = string.find(line, "")
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx2 - 1, { end_col = idx - 2, hl_group = "fgkbgg" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 4, { end_col = #line, hl_group = "fgkbgg" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = idx + 3, hl_group = "fgg" })
-			elseif line:match("") then
-				local idx = string.find(line, "")
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx2 - 1, { end_col = idx - 2, hl_group = "fgkbgy" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 4, { end_col = #line, hl_group = "fgkbgy" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = idx + 3, hl_group = "fgy" })
-			elseif line:match("") then
-				local idx = string.find(line, "")
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx2 - 1, { end_col = idx - 2, hl_group = "fgkbgr" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 4, { end_col = #line, hl_group = "fgkbgr" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = idx + 3, hl_group = "fgr" })
+			local color_code = line:sub(idx2 - 1, idx2 - 1)
+			if line:match("@x") then
+				local idx = string.find(line, "x")
+				local virt_text = use_virt and { { "  ", "fgg" } } or nil
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx2 - 2, {
+					end_col = idx,
+					hl_group = "fgg",
+					virt_text = virt_text,
+					virt_text_pos = "overlay",
+				})
+				if color_code == "d" then
+					color_code = "g"
+				end
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 0, {
+					end_col = #line,
+					hl_group = "fgkbg" .. color_code,
+					virt_text_win_col = vim.api.nvim_strwidth(line),
+					virt_text = { { " ", "fgkbg" .. color_code } },
+				})
+			elseif line:match("@0") then
+				local idx = string.find(line, "0")
+				local virt_text = use_virt and { { "  ", "fgy" } } or nil
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx2 - 2, {
+					end_col = idx,
+					hl_group = "fgy",
+					virt_text = virt_text,
+					virt_text_pos = "overlay",
+				})
+				if color_code == "d" then
+					color_code = "y"
+				end
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 0, {
+					end_col = #line,
+					hl_group = "fgkbg" .. color_code,
+					virt_text_win_col = vim.api.nvim_strwidth(line),
+					virt_text = { { " ", "fgkbg" .. color_code } },
+				})
+			elseif line:match("@!") then
+				local idx = string.find(line, "!")
+				local virt_text = use_virt and { { "  ", "fgr" } } or nil
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx2 - 2, {
+					end_col = idx,
+					hl_group = "fgr",
+					virt_text = virt_text,
+					virt_text_pos = "overlay",
+				})
+				if color_code == "d" then
+					color_code = "r"
+				end
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 0, {
+					end_col = #line,
+					hl_group = "fgkbg" .. color_code,
+					virt_text_win_col = vim.api.nvim_strwidth(line),
+					virt_text = { { " ", "fgkbg" .. color_code } },
+				})
 			else
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, { end_col = #line, hl_group = "Identifier" })
+				vim.api.nvim_buf_set_extmark(
+					0,
+					ns_id,
+					i - 1,
+					0,
+					{ end_col = vim.api.nvim_strwidth(line), hl_group = "Identifier" }
+				)
 			end
-		elseif line:match("^%s*#") then
+		elseif line:match("^%s*[wkrbgcmyd]#") then
 			local idx = string.find(line, "#")
-			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = #line, hl_group = "fgkbgw" })
+			local color_code = line:sub(idx - 1, idx - 1)
+			local virt_text = use_virt and { { "⟩ ", "fg" .. color_code } } or nil
+			if color_code == "d" then
+				color_code = "w"
+			end
+			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 0, {
+				end_col = #line,
+				hl_group = "fgkbg" .. color_code,
+				virt_text_win_col = vim.api.nvim_strwidth(line),
+				virt_text = { { " ", "fgkbg" .. color_code } },
+			})
+			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 2, {
+				end_col = idx + 1,
+				hl_group = "fg" .. color_code,
+				virt_text_win_col = idx - 2,
+				virt_text = virt_text,
+			})
 		elseif line:match("^%s*%*") then
 			local idx = string.find(line, "%*")
-			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = #line, hl_group = "fgkbgw" })
+			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, {
+				end_col = #line,
+				hl_group = "fgkbgw",
+				virt_text_win_col = vim.api.nvim_strwidth(line),
+				virt_text = { { " ", "fgkbgw" } },
+			})
 		elseif line:match("^%s*==*$") then
 			local idx = string.find(line, "=")
-			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = #line, hl_group = "Comment" })
+			vim.api.nvim_buf_set_extmark(
+				0,
+				ns_id,
+				i - 1,
+				idx - 1,
+				{ end_col = vim.api.nvim_strwidth(line), hl_group = "Comment" }
+			)
 		elseif line:match("^%s*%-%-") then
 			local idx = string.find(line, "%-")
-			vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = #line, hl_group = "Comment" })
-		else
-			if line:match("") then
-				local idx = string.find(line, "")
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, { end_col = idx - 1, hl_group = "Comment" })
+			vim.api.nvim_buf_set_extmark(
+				0,
+				ns_id,
+				i - 1,
+				idx - 1,
+				{ end_col = vim.api.nvim_strwidth(line), hl_group = "Comment" }
+			)
+		elseif line:match("^%s*;[x0!] ") then
+			if line:match(";x") then
+				local idx = string.find(line, ";x")
+				local virt_text = use_virt and { { " ", "fgg" } } or nil
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, {
+					end_col = idx + 1,
+					hl_group = "fgg",
+					virt_text = virt_text,
+					virt_text_win_col = idx - 1,
+				})
 				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 2, { end_col = #line, hl_group = "Comment" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = idx + 2, hl_group = "fgg" })
-			elseif line:match("") then
-				local idx = string.find(line, "")
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, { end_col = idx - 1, hl_group = "Comment" })
+			elseif line:match(";0") then
+				local idx = string.find(line, ";0")
+				local virt_text = use_virt and { { " ", "fgy" } } or nil
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, {
+					end_col = idx + 1,
+					hl_group = "fgy",
+					virt_text = virt_text,
+					virt_text_win_col = idx - 1,
+				})
 				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 2, { end_col = #line, hl_group = "Identifier" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = idx + 2, hl_group = "fgy" })
-			elseif line:match("") then
-				local idx = string.find(line, "")
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, { end_col = idx - 1, hl_group = "Comment" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 2, { end_col = #line, hl_group = "Error" })
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx - 1, { end_col = idx + 2, hl_group = "fgr" })
-			else
-				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, { end_col = #line, hl_group = "Identifier" })
+			elseif line:match(";!") then
+				local idx = string.find(line, ";!")
+				local virt_text = use_virt and { { " ", "fgr" } } or nil
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, 0, {
+					end_col = idx + 1,
+					hl_group = "fgr",
+					virt_text = virt_text,
+					virt_text_win_col = idx - 1,
+				})
+				vim.api.nvim_buf_set_extmark(0, ns_id, i - 1, idx + 2, { end_col = #line, hl_group = "fgru" })
 			end
 		end
 		for match in line:gmatch("`(.-)`") do
@@ -93,7 +194,7 @@ local function right(val)
 		new_pos = { current_pos[1], current_pos[2] + 1 }
 	elseif val == -1 then
 		local line = vim.api.nvim_buf_get_lines(0, current_pos[1] - 1, current_pos[1], false)[1]
-		local end_of_line = #line
+		local end_of_line = vim.api.nvim_strwidth(line)
 		new_pos = { current_pos[1], end_of_line }
 	else
 		new_pos = { current_pos[1], val }
@@ -101,38 +202,13 @@ local function right(val)
 	vim.api.nvim_win_set_cursor(0, new_pos)
 end
 
-local function replace_task_symbols()
-	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-	for i, line in ipairs(lines) do
-		if line:match("%[x%]") then
-			local idx = string.find(line, "%[x%]")
-			vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-			right()
-		elseif line:match("%[%-%]") then
-			local idx = string.find(line, "%[%-%]")
-			vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-			right()
-		elseif line:match("%[!%]") then
-			local idx = string.find(line, "%[!%]")
-			vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-			right()
-		end
-	end
-end
-
 local function handle_inp()
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 	for i, line in ipairs(lines) do
-		if line:match("^%s*#") then
-			if not line:match("^%s*# ") then
-				local idx = string.find(line, "#")
-				if not line:match("^%s*# ") then
-					vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "    # " })
-				else
-					vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "    #" })
-				end
-				right(-1)
-			end
+		if line:match("^%s*#$") then
+			local idx = string.find(line, "#")
+			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "    d#0 " })
+			right(-1)
 		elseif line:match("^%s*%*") then
 			if not line:match("^* ") then
 				local idx = string.find(line, "*")
@@ -143,18 +219,14 @@ local function handle_inp()
 				end
 				right(-1)
 			end
-		elseif line:match("^%s*%@") then
-			if not line:match("^%s*@ []") then
-				local idx = string.find(line, "@")
-				vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "        @    " })
-				right(-1)
-			end
-		elseif line:match("^%s*;") then
-			if not line:match("^%s*;[]") then
-				local idx = string.find(line, ";")
-				vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "            ;  " })
-				right(-1)
-			end
+		elseif line:match("^%s*%@%s*$") then
+			local idx = string.find(line, "@")
+			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "        d@0 " })
+			right(-1)
+		elseif line:match("^%s*;%s*$") then
+			local idx = string.find(line, ";")
+			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "            ;0 " })
+			right(-1)
 		elseif line:match(" =$") then
 			local idx = string.find(line, "=")
 			vim.api.nvim_buf_set_text(
@@ -178,15 +250,22 @@ function M.toggle_todo()
 	local line = vim.api.nvim_get_current_line()
 	local pos = vim.api.nvim_win_get_cursor(0)
 	local i = pos[1]
-	if line:match("") then
-		local idx = string.find(line, "")
-		vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-	elseif line:match("") then
-		local idx = string.find(line, "")
-		vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-	elseif line:match("") then
-		local idx = string.find(line, "")
-		vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
+	if line:match("^%s*[wkrbgcmyd]@[!x0]") then
+		local match = line:match("[wkrbgcmyd]@([!x0])")
+		local idx = line:find("[wkrbgcmyd]@([!x0])")
+		if match == "x" then
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "0" })
+		else
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "x" })
+		end
+	elseif line:match("^%s*;[!x0]") then
+		local match = line:match(";([!x0]) ")
+		local idx = line:find(";([!x0]) ")
+		if match == "x" then
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 0, i - 1, idx + 1, { "0" })
+		else
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 0, i - 1, idx + 1, { "x" })
+		end
 	end
 	highlight_todo_items()
 end
@@ -195,32 +274,40 @@ function M.toggle_imp()
 	local line = vim.api.nvim_get_current_line()
 	local pos = vim.api.nvim_win_get_cursor(0)
 	local i = pos[1]
-	if line:match("") then
-		local idx = string.find(line, "")
-		vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-	elseif line:match("") then
-		local idx = string.find(line, "")
-		vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
-	elseif line:match("") then
-		local idx = string.find(line, "")
-		vim.api.nvim_buf_set_text(0, i - 1, idx - 1, i - 1, idx + 2, { "" })
+	if line:match("[wkrbgcmyd]@[!x0]") then
+		local match = line:match("[wkrbgcmyd]@([!x0])")
+		local idx = line:find("[wkrbgcmyd]@([!x0])")
+		if match == "!" then
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "x" })
+		else
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "!" })
+		end
+	elseif line:match(";[!x0]") then
+		local match = line:match(";([!x0]) ")
+		local idx = line:find(";([!x0]) ")
+		if match == "!" then
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 0, i - 1, idx + 1, { "x" })
+		else
+			vim.api.nvim_buf_set_text(0, i - 1, idx + 0, i - 1, idx + 1, { "!" })
+		end
 	end
 	highlight_todo_items()
 end
 
 function M.setup()
-	local define_grps = {
-		["fgg"] = { "g" },
-		["fgy"] = { "y" },
-		["fgr"] = { "r" },
-		["fgkbgg"] = { "k", "g" },
-		["fgkbgy"] = { "k", "y" },
-		["fgkbgr"] = { "k", "r" },
-		["fgkbgw"] = { "k", "w" },
-	}
+	local define_grps = {}
+	for key, _ in pairs(colors) do
+		if key ~= "k" then
+			define_grps["fg" .. key] = { key }
+			define_grps["fgkbg" .. key] = { "k", key }
+		end
+	end
 	for name, color in pairs(define_grps) do
 		define_color(name, color[1], color[2])
+		define_color(name .. "u", color[1], color[2], false, true)
 	end
+	define_color("fgk", "w", nil, true)
+	define_color("fgkbgk", "w", "k")
 	vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 		pattern = "*.udi",
 		callback = function()
@@ -265,7 +352,6 @@ function M.setup()
 			vim.bo.expandtab = true
 			vim.opt_local.foldmethod = "indent"
 			vim.opt_local.foldlevel = 99
-			replace_task_symbols()
 			highlight_todo_items()
 		end,
 	})
@@ -279,9 +365,19 @@ function M.setup()
 			if #current_text > #prev_text then
 				handle_inp()
 			end
-			replace_task_symbols()
 			highlight_todo_items()
 			vim.b.prev_content = current_content
+		end,
+	})
+	vim.api.nvim_create_autocmd("TextChanged", {
+		pattern = "*.udi",
+		callback = function()
+			highlight_todo_items()
+		end,
+	})
+	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+		callback = function()
+			highlight_todo_items()
 		end,
 	})
 end
