@@ -9,6 +9,7 @@ local colors = {
 	c = "#8cdcff",
 	m = "#c5a3ff",
 	y = "#f5c97f",
+	e = "#26262e",
 }
 
 local function define_color(name, color_fg, color_bg, bold, underline)
@@ -32,7 +33,7 @@ local function highlight_todo_items()
 		if mode:match("^i") and i == cursor then
 			use_virt = false
 		end
-		if line:match("^%s*[wkrbgcmyd]@[!x0]") then
+		if line:match("^%s*[wkrbgcmyed]@[!x0]") then
 			local idx2 = string.find(line, "@")
 			local color_code = line:sub(idx2 - 1, idx2 - 1)
 			if line:match("@x") then
@@ -98,7 +99,7 @@ local function highlight_todo_items()
 					{ end_col = vim.api.nvim_strwidth(line), hl_group = "Identifier" }
 				)
 			end
-		elseif line:match("^%s*[wkrbgcmyd]#") then
+		elseif line:match("^%s*[wkrbgcmyed]# ") then
 			local idx = string.find(line, "#")
 			local color_code = line:sub(idx - 1, idx - 1)
 			local virt_text = use_virt and { { "⟩ ", "fg" .. color_code } } or nil
@@ -297,7 +298,7 @@ end
 function M.setup()
 	local define_grps = {}
 	for key, _ in pairs(colors) do
-		if key ~= "k" then
+		if key ~= "k" and key ~= "e" then
 			define_grps["fg" .. key] = { key }
 			define_grps["fgkbg" .. key] = { "k", key }
 		end
@@ -308,6 +309,8 @@ function M.setup()
 	end
 	define_color("fgk", "w", nil, true)
 	define_color("fgkbgk", "w", "k")
+	define_color("fge", "w", nil, true)
+	define_color("fgkbge", "w", "e")
 	vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 		pattern = "*.udi",
 		callback = function()
