@@ -228,7 +228,7 @@ local function handle_inp()
 			local idx = string.find(line, ";")
 			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "            ;0 " })
 			right(-1)
-		elseif line:match(" =$") then
+		elseif line:match("^%s*%=$") then
 			local idx = string.find(line, "=")
 			vim.api.nvim_buf_set_text(
 				0,
@@ -239,7 +239,7 @@ local function handle_inp()
 				{ "==================================================" }
 			)
 			right(-1)
-		elseif line:match(" %-$") then
+		elseif line:match("^%s*%-$") then
 			local idx = string.find(line, "%-")
 			vim.api.nvim_buf_set_text(0, i - 1, 0, i - 1, idx + 0, { "                -- " })
 			right(-1)
