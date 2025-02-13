@@ -17,6 +17,8 @@ local colors = {
 
 local colors_s = "wkerbgcmytopd"
 
+local types = "!x0"
+
 local function define_color(name, color_fg, color_bg, bold, underline)
 	if bold == nil then
 		bold = true
@@ -38,7 +40,7 @@ local function highlight_todo_items()
 		if mode:match("^i") and i == cursor then
 			use_virt = false
 		end
-		if line:match("^%s*[" .. colors_s .. "]@[!x0]") then
+		if line:match("^%s*[" .. colors_s .. "]@[" .. types .. "]") then
 			local idx2 = string.find(line, "@")
 			local color_code = line:sub(idx2 - 1, idx2 - 1)
 			if line:match("@x") then
@@ -149,7 +151,7 @@ local function highlight_todo_items()
 				idx - 1,
 				{ end_col = vim.api.nvim_strwidth(line), hl_group = "Comment" }
 			)
-		elseif line:match("^%s*;[x0!] ") then
+		elseif line:match("^%s*;[" .. types .. "] ") then
 			if line:match(";x") then
 				local idx = string.find(line, ";x")
 				local virt_text = use_virt and { { " ", "fgg" } } or nil
@@ -256,17 +258,17 @@ function M.toggle_todo()
 	local line = vim.api.nvim_get_current_line()
 	local pos = vim.api.nvim_win_get_cursor(0)
 	local i = pos[1]
-	if line:match("^%s*[wkrbgcmyd]@[!x0]") then
-		local match = line:match("[wkrbgcmyd]@([!x0])")
-		local idx = line:find("[wkrbgcmyd]@([!x0])")
+	if line:match("^%s*[" .. colors_s .. "]@[" .. types .. "]") then
+		local match = line:match("[" .. colors_s .. "]@([" .. types .. "])")
+		local idx = line:find("[" .. colors_s .. "]@([" .. types .. "])")
 		if match == "x" then
 			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "0" })
 		else
 			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "x" })
 		end
-	elseif line:match("^%s*;[!x0]") then
-		local match = line:match(";([!x0]) ")
-		local idx = line:find(";([!x0]) ")
+	elseif line:match("^%s*;[" .. types .. "]") then
+		local match = line:match(";([" .. types .. "]) ")
+		local idx = line:find(";([" .. types .. "]) ")
 		if match == "x" then
 			vim.api.nvim_buf_set_text(0, i - 1, idx + 0, i - 1, idx + 1, { "0" })
 		else
@@ -280,17 +282,17 @@ function M.toggle_imp()
 	local line = vim.api.nvim_get_current_line()
 	local pos = vim.api.nvim_win_get_cursor(0)
 	local i = pos[1]
-	if line:match("[wkrbgcmyd]@[!x0]") then
-		local match = line:match("[wkrbgcmyd]@([!x0])")
-		local idx = line:find("[wkrbgcmyd]@([!x0])")
+	if line:match("[" .. colors_s .. "]@[" .. types .. "]") then
+		local match = line:match("[" .. colors_s .. "]@([" .. types .. "])")
+		local idx = line:find("[" .. colors_s .. "]@([" .. types .. "])")
 		if match == "!" then
 			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "x" })
 		else
 			vim.api.nvim_buf_set_text(0, i - 1, idx + 1, i - 1, idx + 2, { "!" })
 		end
-	elseif line:match(";[!x0]") then
-		local match = line:match(";([!x0]) ")
-		local idx = line:find(";([!x0]) ")
+	elseif line:match(";[" .. types .. "]") then
+		local match = line:match(";([" .. types .. "]) ")
+		local idx = line:find(";([" .. types .. "]) ")
 		if match == "!" then
 			vim.api.nvim_buf_set_text(0, i - 1, idx + 0, i - 1, idx + 1, { "x" })
 		else
