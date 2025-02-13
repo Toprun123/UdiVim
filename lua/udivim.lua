@@ -3,14 +3,19 @@ local M = {}
 local colors = {
 	w = "#d6e0f5",
 	k = "#12141f",
+	e = "#414868",
 	r = "#ff7a9c",
 	g = "#b0e57c",
 	b = "#89b4fa",
 	c = "#8cdcff",
 	m = "#c5a3ff",
 	y = "#f5c97f",
-	e = "#26262e",
+	t = "#915E42",
+	o = "#ff9e64",
+	p = "#ff8fb7",
 }
+
+local colors_s = "wkerbgcmytopd"
 
 local function define_color(name, color_fg, color_bg, bold, underline)
 	if bold == nil then
@@ -33,7 +38,7 @@ local function highlight_todo_items()
 		if mode:match("^i") and i == cursor then
 			use_virt = false
 		end
-		if line:match("^%s*[wkrbgcmyed]@[!x0]") then
+		if line:match("^%s*[" .. colors_s .. "]@[!x0]") then
 			local idx2 = string.find(line, "@")
 			local color_code = line:sub(idx2 - 1, idx2 - 1)
 			if line:match("@x") then
@@ -99,7 +104,7 @@ local function highlight_todo_items()
 					{ end_col = vim.api.nvim_strwidth(line), hl_group = "Identifier" }
 				)
 			end
-		elseif line:match("^%s*[wkrbgcmyed]# ") then
+		elseif line:match("^%s*[" .. colors_s .. "]# ") then
 			local idx = string.find(line, "#")
 			local color_code = line:sub(idx - 1, idx - 1)
 			local virt_text = use_virt and { { "⟩ ", "fg" .. color_code } } or nil
