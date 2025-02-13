@@ -10,7 +10,7 @@ local colors = {
 	c = "#8cdcff",
 	m = "#c5a3ff",
 	y = "#f5c97f",
-	t = "#915E42",
+	t = "#be8c71",
 	o = "#ff9e64",
 	p = "#ff8fb7",
 }
